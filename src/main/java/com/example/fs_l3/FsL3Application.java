@@ -7,6 +7,8 @@ import com.example.fs_l3.repository.OwnerRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -36,6 +38,27 @@ public class FsL3Application {
             mary.addCar(c3);
 
             carRepository.saveAll(List.of(c1, c2, c3));
+        };
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public org.springframework.boot.CommandLineRunner seedUsers(
+            com.example.fs_l3.repository.AppUserRepository users,
+            PasswordEncoder encoder
+    ) {
+        return args -> {
+            users.findByUsername("user").orElseGet(() ->
+                    users.save(new com.example.fs_l3.domain.AppUser(
+                            "user", encoder.encode("user"), com.example.fs_l3.domain.Role.ROLE_USER)));
+
+            users.findByUsername("admin").orElseGet(() ->
+                    users.save(new com.example.fs_l3.domain.AppUser(
+                            "admin", encoder.encode("admin"), com.example.fs_l3.domain.Role.ROLE_ADMIN)));
         };
     }
 }
